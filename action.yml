@@ -1,0 +1,72 @@
+name: "Grove Analysis"
+description: "Analyzes code and generates a static HTML report"
+inputs:
+  grove-repo:
+    description: "The repository containing the Grove tool (default: TwoFx/std-metadata)"
+    required: false
+    default: "TwoFx/std-metadata"
+  grove-branch:
+    description: "The branch of the Grove repository to use"
+    required: false
+    default: "master"
+  project-path:
+    description: "Path to the directory containing the analysis script"
+    required: true
+  script-name:
+    description: "Name of the script to execute with lake exe"
+    required: true
+  artifact-name:
+    description: "Name of the artifact containing the generated HTML report"
+    required: false
+    default: "grove-report"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Elan
+      shell: bash
+      run: |
+        curl -L https://github.com/leanprover/elan/releases/latest/download/elan-init.sh -o elan-init.sh
+        bash elan-init.sh -y
+        echo "$HOME/.elan/bin" >> $GITHUB_PATH
+
+    - name: Checkout user repository
+      uses: actions/checkout@v4
+      with:
+        path: user-repo
+
+    - name: Checkout Grove
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ inputs.grove-repo }}
+        ref: ${{ inputs.grove-branch }}
+        path: grove-repo
+
+    - name: Run analysis
+      shell: bash
+      working-directory: user-repo/${{ inputs.project-path }}
+      run: |
+        lake exe ${{ inputs.script-name }} > analysis.json
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: grove-repo
+      run: npm install
+
+    - name: Build report
+      shell: bash
+      working-directory: grove-repo
+      env:
+        STD_METADATA_LOCATION: ${{ github.workspace }}/user-repo/${{ inputs.project-path }}/analysis.json
+      run: npm run build
+
+    - name: Upload report
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: grove-repo/out
