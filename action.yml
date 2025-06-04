@@ -2,9 +2,9 @@ name: "Grove Analysis"
 description: "Analyzes code and generates a static HTML report"
 inputs:
   grove-repo:
-    description: "The repository containing the Grove tool (default: TwoFx/std-metadata)"
+    description: "The repository containing the Grove tool (default: TwoFx/grove)"
     required: false
-    default: "TwoFx/std-metadata"
+    default: "TwoFx/grove"
   grove-branch:
     description: "The branch of the Grove repository to use"
     required: false
@@ -66,7 +66,7 @@ runs:
       shell: bash
       working-directory: grove-repo/frontend
       env:
-        STD_METADATA_LOCATION: ${{ github.workspace }}/user-repo/${{ inputs.project-path }}/analysis.json
+        GROVE_DATA_LOCATION: ${{ github.workspace }}/user-repo/${{ inputs.project-path }}/analysis.json
       run: npm run build
 
     - name: Upload report
