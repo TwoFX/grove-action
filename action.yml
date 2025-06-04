@@ -54,7 +54,7 @@ runs:
 
     - name: Install dependencies
       shell: bash
-      working-directory: grove-repo
+      working-directory: grove-repo/frontend
       run: npm install
 
     - name: Build report
