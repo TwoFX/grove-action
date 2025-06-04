@@ -59,7 +59,7 @@ runs:
 
     - name: Build report
       shell: bash
-      working-directory: grove-repo
+      working-directory: grove-repo/frontend
       env:
         STD_METADATA_LOCATION: ${{ github.workspace }}/user-repo/${{ inputs.project-path }}/analysis.json
       run: npm run build
@@ -68,4 +68,4 @@ runs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.artifact-name }}
-        path: grove-repo/out
+        path: grove-repo/frontend/out
