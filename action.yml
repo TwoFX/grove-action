@@ -20,6 +20,11 @@ inputs:
     required: false
     default: "grove-report"
 
+outputs:
+  out-path:
+    description: "Path to the generated HTML report directory"
+    value: ${{ github.workspace }}/grove-repo/frontend/out
+
 runs:
   using: "composite"
   steps:
