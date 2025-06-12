@@ -50,7 +50,7 @@ runs:
       shell: bash
       working-directory: user-repo/${{ inputs.project-path }}
       run: |
-        lake exe ${{ inputs.script-name }} > analysis.json
+        lake exe ${{ inputs.script-name }} --full analysis.json --invalidated invalidated.json
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
