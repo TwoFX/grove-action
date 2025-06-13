@@ -1,5 +1,5 @@
-name: "Grove Analysis"
-description: "Analyzes code and generates a static HTML report"
+name: "Grove build step"
+description: "Builds the Grove analysis backend and Grove frontend"
 inputs:
   grove-repo:
     description: "The repository containing the Grove tool (default: TwoFx/grove)"
