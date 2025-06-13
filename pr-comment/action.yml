@@ -57,7 +57,5 @@ runs:
         comment-id: ${{ steps.fc.outputs.comment-id }}
         body: |
           <!-- invalidated-facts-diff -->
-          ```
           ${{ steps.diff.outputs.out }}
-          ```
         token: ${{ inputs.token }}

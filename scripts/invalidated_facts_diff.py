@@ -55,7 +55,7 @@ def _load_facts(path: str | Path) -> Set[Fact]:
 def _format_markdown(new_facts: Set[Fact]) -> str:
     """Return a nicely formatted Markdown message for *new_facts*."""
     if not new_facts:
-        return "*Grove: no invalidated facts"
+        return "*Grove: no invalidated facts*"
 
     lines = ["### Grove invalidations", ""]
     for widget_id, fact_id in sorted(new_facts):
