@@ -71,11 +71,11 @@ runs:
           -H "Authorization: Bearer $TOKEN" \
           -H "Accept: application/vnd.github+json" \
           "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$ART_ID/zip" \
-          -o baseline.zip
-        unzip -q baseline.zip -d baseline
+          -o upstream.zip
+        unzip -q upstream.zip -d upstream
 
-    - name: Upload baseline artifact
+    - name: Upload upstream artifact
       uses: actions/upload-artifact@v4
       with:
-        name: baseline-${{ inputs.artifact-name }}
-        path: baseline
+        name: upstream-${{ inputs.artifact-name }}
+        path: upstream

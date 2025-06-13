@@ -3,11 +3,11 @@
 
 Usage
 -----
-    python invalidated_facts_diff.py baseline.json latest.json
+    python invalidated_facts_diff.py upstream.json latest.json
 
 The script prints a Markdown-formatted report listing any new invalidated
 facts—that is, (widgetId, factId) pairs that appear in latest.json but not
-in baseline.json. Both files must conform to the JTD schema
+in upstream.json. Both files must conform to the JTD schema
 `invalidatedFacts.jtd.json` (see Grove repository).
 """
 from __future__ import annotations
@@ -66,16 +66,16 @@ def _format_markdown(new_facts: Set[Fact]) -> str:
 def main() -> None:
     if len(sys.argv) != 3:
         print(
-            "Usage: python invalidated_facts_diff.py <baseline.json> <latest.json>",
+            "Usage: python invalidated_facts_diff.py <upstream.json> <latest.json>",
             file=sys.stderr,
         )
         sys.exit(1)
 
-    baseline_path, latest_path = map(Path, sys.argv[1:3])
-    baseline_facts = _load_facts(baseline_path)
+    upstream_path, latest_path = map(Path, sys.argv[1:3])
+    upstream_facts = _load_facts(upstream_path)
     latest_facts = _load_facts(latest_path)
 
-    new_facts = latest_facts - baseline_facts
+    new_facts = latest_facts - upstream_facts
     print(_format_markdown(new_facts))
 
 

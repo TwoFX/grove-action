@@ -67,11 +67,20 @@ runs:
       working-directory: grove-repo/frontend
       run: npm install
 
+    - name: Download upstream invalidated facts
+      uses: actions/download-artifact@v4
+      id: download-upstream
+      continue-on-error: true
+      with:
+        name: upstream-${{ inputs.invalidated-facts-artifact-name }}
+        path: ${{ github.workspace }}/upstream-invalidated
+
     - name: Build Grove frontend
       shell: bash
       working-directory: grove-repo/frontend
       env:
         GROVE_DATA_LOCATION: ${{ github.workspace }}/user-repo/${{ inputs.project-path }}/analysis.json
+        GROVE_UPSTREAM_INVALIDATED_FACTS_LOCATION: ${{ steps.download-upstream.outcome == 'success' && format('{0}/upstream-invalidated/invalidated.json', github.workspace) || '' }}
       run: npm run build
 
     - name: Upload Grove frontend

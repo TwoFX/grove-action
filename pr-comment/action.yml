@@ -1,5 +1,5 @@
 name: "pr-comment"
-description: "Diff baseline & PR artifacts and comment on the pull-request"
+description: "Diff upstream & PR artifacts and comment on the pull-request"
 inputs:
   artifact-name:
     description: "Name of the artifact to compare"
@@ -16,12 +16,12 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Download baseline
-      id: download-baseline
+    - name: Download upstream
+      id: download-upstream
       uses: actions/download-artifact@v4
       with:
-        name: baseline-${{ inputs.artifact-name }}
-        path: baseline
+        name: upstream-${{ inputs.artifact-name }}
+        path: upstream
 
     - name: Download PR artifact
       id: downlaod-new
@@ -35,7 +35,7 @@ runs:
       shell: bash
       run: |
         python ${{ github.action_path }}/../scripts/invalidated_facts_diff.py \
-               baseline/${{ inputs.file-name }} \
+               upstream/${{ inputs.file-name }} \
                pr/${{ inputs.file-name }} > diff.txt
         echo "out<<EOF" >> $GITHUB_OUTPUT
         cat diff.txt >> $GITHUB_OUTPUT
