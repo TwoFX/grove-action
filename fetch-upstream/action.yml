@@ -4,10 +4,6 @@ inputs:
   artifact-name:
     description: "Original artifact name"
     required: true
-  baseline-branch:
-    description: "Base when event != PR"
-    required: false
-    default: "main"
   token:
     description: "Token with actions:read; can be GITHUB_TOKEN"
     required: false
@@ -15,6 +11,11 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Skip if not a pull request
+      if: github.event_name != 'pull_request'
+      shell: bash
+      run: exit 0
+
     - name: Checkout user repository
       uses: actions/checkout@v4
       with:
@@ -24,11 +25,7 @@ runs:
       id: merge_base
       shell: bash
       run: |
-        if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
-          base_ref="${{ github.event.pull_request.base.ref }}"
-        else
-          base_ref="${{ inputs.baseline-branch }}"
-        fi
+        base_ref="${{ github.event.pull_request.base.ref }}"
         git fetch origin "$base_ref" --depth=1 --no-tags
         sha=$(git merge-base "$GITHUB_SHA" "origin/$base_ref")
         echo "sha=$sha" >> "$GITHUB_OUTPUT"
@@ -49,7 +46,6 @@ runs:
           if (!runs.length) core.setFailed('No run for merge base');
           core.setOutput('run_id', runs[0].id);
 
-    # 4) find matching artifact in that run
     - name: Determine artifact ID on the merge base
       id: art_meta
       uses: actions/github-script@v7
@@ -75,8 +71,8 @@ runs:
           -o baseline.zip
         unzip -q baseline.zip -d baseline
 
-    # 6) re-upload under deterministic name
-    - uses: actions/upload-artifact@v4
+    - name: Upload baseline artifact
+      uses: actions/upload-artifact@v4
       with:
         name: baseline-${{ inputs.artifact-name }}
         path: baseline
