@@ -37,7 +37,7 @@ runs:
           const runs = await github.paginate(
             github.rest.actions.listWorkflowRuns,
             {owner, repo,
-             workflow_id: context.payload.workflow,
+             workflow_id: context.payload.workflow_id,
              head_sha: '${{ steps.merge_base.outputs.sha }}',
              status: 'success' }
           );
