@@ -13,18 +13,21 @@ runs:
   using: "composite"
   steps:
     - name: Download baseline
+      id: download-baseline
       uses: actions/download-artifact@v4
       with:
         name: baseline-${{ inputs.artifact-name }}
         path: baseline
 
     - name: Download PR artifact
+      id: downlaod-new
       uses: actions/download-artifact@v4
       with:
         name: ${{ inputs.artifact-name }}
         path: pr
 
-    - id: diff
+    - name: Compare upstream and downstream invalidated facts
+      id: diff
       shell: bash
       run: |
         python ${{ github.action_path }}/../scripts/invalidated_facts_diff.py \
@@ -34,7 +37,7 @@ runs:
         cat diff.txt >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
 
-    - if: ${{ github.event_name == 'pull_request' }}
+    - name: Find existing comment
       uses: peter-evans/find-comment@v2
       id: fc
       with:
@@ -42,8 +45,9 @@ runs:
         comment-author: "github-actions[bot]"
         body-includes: <!-- invalidated-facts-diff -->
 
-    - if: ${{ github.event_name == 'pull_request' }}
+    - name: Post comment
       uses: peter-evans/create-or-update-comment@v4
+      id: post-comment
       with:
         issue-number: ${{ github.event.pull_request.number }}
         comment-id: ${{ steps.fc.outputs.comment-id }}
