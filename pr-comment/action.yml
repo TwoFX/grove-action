@@ -1,0 +1,58 @@
+name: "pr-comment"
+description: "Diff baseline & PR artifacts and comment on the pull-request"
+inputs:
+  artifact-name:
+    description: "Name of the artifact to compare"
+    required: false
+    default: "invalidated-facts"
+  token:
+    description: "GitHub token for commenting on PRs"
+    required: false
+    default: ${{ github.token }}
+runs:
+  using: "composite"
+  steps:
+    - name: Download baseline
+      uses: actions/download-artifact@v4
+      with:
+        name: baseline-${{ inputs.artifact-name }}
+        path: baseline
+
+    - name: Download PR artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: pr
+
+    - id: diff
+      shell: bash
+      run: |
+        python scripts/invalidated_facts_diff.py \
+               baseline/${{ inputs.artifact-name }}.json \
+               pr/${{ inputs.artifact-name }}.json > diff.txt
+        echo "out<<EOF" >> $GITHUB_OUTPUT
+        cat diff.txt >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - if: ${{ github.event_name == 'pull_request' }}
+      uses: peter-evans/find-comment@v2
+      id: fc
+      with:
+        issue-number: ${{ github.event.pull_request.number }}
+        comment-author: 'github-actions[bot]'
+        body-includes: <!-- invalidated-facts-diff -->
+
+    - if: ${{ github.event_name == 'pull_request' }}
+      uses: peter-evans/create-or-update-comment@v4
+      with:
+        issue-number: ${{ github.event.pull_request.number }}
+        comment-id: ${{ steps.fc.outputs.comment-id }}
+        body: |
+          <!-- invalidated-facts-diff -->
+          ```
+          ${{ steps.diff.outputs.out }}
+          ```
+        token: ${{ inputs.token }}
+
+outputs:
+  diff: {value: ${{ steps.diff.outputs.out }}, description: "Raw diff text"}
