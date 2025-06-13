@@ -13,12 +13,17 @@ inputs:
     description: "Path to the directory containing the analysis script"
     required: true
   script-name:
-    description: "Name of the script to execute with lake exe"
-    required: true
-  artifact-name:
+    description: "Name of the script to execute with lake exe (default: grove)"
+    required: false
+    default: "grove"
+  frontend-artifact-name:
     description: "Name of the artifact containing the generated HTML report"
     required: false
-    default: "grove-report"
+    default: "grove-frontend"
+  invalidated-facts-artifact-name:
+    description: "Name of the artifact containing the invalidated facts"
+    required: false
+    default: "invalidated-facts"
 
 outputs:
   out-path:
@@ -62,15 +67,21 @@ runs:
       working-directory: grove-repo/frontend
       run: npm install
 
-    - name: Build report
+    - name: Build Grove frontend
       shell: bash
       working-directory: grove-repo/frontend
       env:
         GROVE_DATA_LOCATION: ${{ github.workspace }}/user-repo/${{ inputs.project-path }}/analysis.json
       run: npm run build
 
-    - name: Upload report
+    - name: Upload Grove frontend
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.artifact-name }}
+        name: ${{ inputs.frontend-artifact-name }}
         path: grove-repo/frontend/out
+
+    - name: Upload invalidated facts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.invalidated-facts-artifact-name }}
+        path: ${{ github.workspace }}/user-repo/${{ inputs.project-path }}/invalidated.json
