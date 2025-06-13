@@ -58,4 +58,5 @@ runs:
         body: |
           <!-- invalidated-facts-diff -->
           ${{ steps.diff.outputs.out }}
+        edit-mode: replace
         token: ${{ inputs.token }}
