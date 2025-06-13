@@ -11,7 +11,6 @@ inputs:
     default: ${{ github.token }}
 runs:
   using: "composite"
-  if: github.event_name == 'pull_request'
   steps:
     - name: Download baseline
       uses: actions/download-artifact@v4

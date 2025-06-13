@@ -10,7 +10,6 @@ inputs:
     default: ${{ github.token }}
 runs:
   using: "composite"
-  if: github.event_name == 'pull_request'
   steps:
     - name: Checkout user repository
       uses: actions/checkout@v4
