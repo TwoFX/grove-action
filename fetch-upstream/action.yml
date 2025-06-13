@@ -34,10 +34,18 @@ runs:
       with:
         script: |
           const {owner, repo} = context.repo;
+          // First get all workflows to find the one we want
+          const workflows = await github.paginate(
+            github.rest.actions.listRepoWorkflows,
+            {owner, repo}
+          );
+          const workflow = workflows.find(w => w.name === context.workflow);
+          if (!workflow) core.setFailed('Could not find workflow');
+
           const runs = await github.paginate(
             github.rest.actions.listWorkflowRuns,
             {owner, repo,
-             workflow_id: context.payload.workflow_id,
+             workflow_id: workflow.id,
              head_sha: '${{ steps.merge_base.outputs.sha }}',
              status: 'success' }
           );
