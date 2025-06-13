@@ -5,6 +5,10 @@ inputs:
     description: "Name of the artifact to compare"
     required: false
     default: "invalidated-facts"
+  file-name:
+    description: "Name of the file to compare inside each artifact"
+    required: false
+    default: "invalidated.json"
   token:
     description: "GitHub token for commenting on PRs"
     required: false
@@ -35,8 +39,8 @@ runs:
         echo "Contents of pr directory:"
         ls -la pr/
         python ${{ github.action_path }}/../scripts/invalidated_facts_diff.py \
-               baseline/${{ inputs.artifact-name }}.json \
-               pr/${{ inputs.artifact-name }}.json > diff.txt
+               baseline/${{ inputs.file-name }} \
+               pr/${{ inputs.file-name }} > diff.txt
         echo "out<<EOF" >> $GITHUB_OUTPUT
         cat diff.txt >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
