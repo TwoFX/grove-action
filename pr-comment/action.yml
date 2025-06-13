@@ -27,7 +27,7 @@ runs:
     - id: diff
       shell: bash
       run: |
-        python scripts/invalidated_facts_diff.py \
+        python ${{ github.action_path }}/../scripts/invalidated_facts_diff.py \
                baseline/${{ inputs.artifact-name }}.json \
                pr/${{ inputs.artifact-name }}.json > diff.txt
         echo "out<<EOF" >> $GITHUB_OUTPUT
