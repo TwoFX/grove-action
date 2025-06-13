@@ -34,10 +34,6 @@ runs:
       id: diff
       shell: bash
       run: |
-        echo "Contents of baseline directory:"
-        ls -la baseline/
-        echo "Contents of pr directory:"
-        ls -la pr/
         python ${{ github.action_path }}/../scripts/invalidated_facts_diff.py \
                baseline/${{ inputs.file-name }} \
                pr/${{ inputs.file-name }} > diff.txt
