@@ -1,0 +1,82 @@
+name: "fetch-upstream"
+description: "Fetch an artifact from the merge-base commit and re-upload it"
+inputs:
+  artifact-name:
+    description: "Original artifact name"
+    required: true
+  baseline-branch:
+    description: "Base when event != PR"
+    required: false
+    default: "main"
+  token:
+    description: "Token with actions:read; can be GITHUB_TOKEN"
+    required: false
+    default: ${{ github.token }}
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout user repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Compute commit id of the merge base
+      id: merge_base
+      shell: bash
+      run: |
+        if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+          base_ref="${{ github.event.pull_request.base.ref }}"
+        else
+          base_ref="${{ inputs.baseline-branch }}"
+        fi
+        git fetch origin "$base_ref" --depth=1 --no-tags
+        sha=$(git merge-base "$GITHUB_SHA" "origin/$base_ref")
+        echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+    - name: Locate successful workflow run for the merge base
+      id: base_run
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const {owner, repo} = context.repo;
+          const runs = await github.paginate(
+            github.rest.actions.listWorkflowRuns,
+            {owner, repo,
+             workflow_id: context.workflow,
+             head_sha: '${{ steps.merge_base.outputs.sha }}',
+             status: 'success' }
+          );
+          if (!runs.length) core.setFailed('No run for merge base');
+          core.setOutput('run_id', runs[0].id);
+
+    # 4) find matching artifact in that run
+    - name: Determine artifact ID on the merge base
+      id: art_meta
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const {owner, repo} = context.repo;
+          const run_id = '${{ steps.base_run.outputs.run_id }}';
+          const list = await github.rest.actions.listWorkflowRunArtifacts({owner, repo, run_id});
+          const hit  = list.data.artifacts.find(a => a.name === '${{ inputs.artifact-name }}');
+          if (!hit)  core.setFailed('Artifact not found');
+          core.setOutput('id', hit.id);
+
+    - name: Download and unzip artifact
+      shell: bash
+      env:
+        ART_ID: ${{ steps.art_meta.outputs.id }}
+        TOKEN: ${{ inputs.token }}
+      run: |
+        curl -sSL \
+          -H "Authorization: Bearer $TOKEN" \
+          -H "Accept: application/vnd.github+json" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$ART_ID/zip" \
+          -o baseline.zip
+        unzip -q baseline.zip -d baseline
+
+    # 6) re-upload under deterministic name
+    - uses: actions/upload-artifact@v4
+      with:
+        name: baseline-${{ inputs.artifact-name }}
+        path: baseline
