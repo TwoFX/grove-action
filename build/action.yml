@@ -24,6 +24,12 @@ inputs:
     description: "Name of the artifact containing the invalidated facts"
     required: false
     default: "invalidated-facts"
+  toolchain-id:
+    description: "Optional toolchain ID to link"
+    required: false
+  toolchain-path:
+    description: "Optional path to link the toolchain to"
+    required: false
 
 outputs:
   out-path:
@@ -38,6 +44,11 @@ runs:
       run: |
         curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
         echo "$HOME/.elan/bin" >> $GITHUB_PATH
+
+    - name: Link custom toolchain
+      if: ${{ inputs.toolchain-id != '' && inputs.toolchain-path != '' }}
+      shell: bash
+      run: elan toolchain link ${{ inputs.toolchain-id }} ${{ inputs.toolchain-path }}
 
     - name: Checkout user repository
       uses: actions/checkout@v4
