@@ -38,7 +38,9 @@ runs:
         fi
 
     - name: Download artifact from upstream
+      id: download_artifact
       uses: dawidd6/action-download-artifact@v11
+      continue-on-error: true
       with:
         name: ${{ inputs.artifact-name }}
         path: upstream
@@ -47,6 +49,7 @@ runs:
         github_token: ${{ inputs.token }}
 
     - name: Upload upstream artifact
+      if: steps.download_artifact.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
         name: upstream-${{ inputs.artifact-name }}
