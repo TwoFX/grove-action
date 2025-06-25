@@ -1,14 +1,10 @@
 name: "pr-comment"
-description: "Diff upstream & PR artifacts and comment on the pull-request"
+description: "Download comment text and post it on the pull-request"
 inputs:
-  artifact-name:
-    description: "Name of the artifact to compare"
+  comment-artifact-name:
+    description: "Name of the artifact containing the PR comment text"
     required: false
-    default: "invalidated-facts"
-  file-name:
-    description: "Name of the file to compare inside each artifact"
-    required: false
-    default: "invalidated.json"
+    default: "pr-comment-text"
   token:
     description: "GitHub token for commenting on PRs"
     required: false
@@ -16,29 +12,19 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Download upstream
-      id: download-upstream
+    - name: Download comment text
+      id: download-comment
       uses: actions/download-artifact@v4
       with:
-        name: upstream-${{ inputs.artifact-name }}
-        path: upstream
+        name: ${{ inputs.comment-artifact-name }}
+        path: comment
 
-    - name: Download PR artifact
-      id: downlaod-new
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ inputs.artifact-name }}
-        path: pr
-
-    - name: Compare upstream and downstream invalidated facts
-      id: diff
+    - name: Read comment text
+      id: read-comment
       shell: bash
       run: |
-        python ${{ github.action_path }}/../scripts/invalidated_facts_diff.py \
-               upstream/${{ inputs.file-name }} \
-               pr/${{ inputs.file-name }} > diff.txt
-        echo "out<<EOF" >> $GITHUB_OUTPUT
-        cat diff.txt >> $GITHUB_OUTPUT
+        echo "content<<EOF" >> $GITHUB_OUTPUT
+        cat comment/comment.txt >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Find existing comment
@@ -57,6 +43,6 @@ runs:
         comment-id: ${{ steps.fc.outputs.comment-id }}
         body: |
           <!-- invalidated-facts-diff -->
-          ${{ steps.diff.outputs.out }}
+          ${{ steps.read-comment.outputs.content }}
         edit-mode: replace
         token: ${{ inputs.token }}

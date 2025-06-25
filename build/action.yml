@@ -24,6 +24,14 @@ inputs:
     description: "Name of the artifact containing the invalidated facts"
     required: false
     default: "invalidated-facts"
+  comment-artifact-name:
+    description: "Name of the artifact containing the PR comment text"
+    required: false
+    default: "pr-comment-text"
+  invalidated-file-name:
+    description: "Name of the file to compare inside each artifact"
+    required: false
+    default: "invalidated.json"
   toolchain-id:
     description: "Optional toolchain ID to link"
     required: false
@@ -105,3 +113,21 @@ runs:
       with:
         name: ${{ inputs.invalidated-facts-artifact-name }}
         path: ${{ github.workspace }}/user-repo/${{ inputs.project-path }}/invalidated.json
+
+    - name: Compare upstream and downstream invalidated facts
+      id: diff
+      shell: bash
+      run: |
+        if [ "${{ steps.download-upstream.outcome }}" == "success" ]; then
+          python ${{ github.action_path }}/../scripts/invalidated_facts_diff.py \
+            ${{ github.workspace }}/upstream-invalidated/${{ inputs.invalidated-file-name }} \
+            ${{ github.workspace }}/user-repo/${{ inputs.project-path }}/${{ inputs.invalidated-file-name }} > comment.txt
+        else
+          echo "*Grove: upstream invalidated facts not available*" > comment.txt
+        fi
+
+    - name: Upload PR comment text
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.comment-artifact-name }}
+        path: comment.txt
