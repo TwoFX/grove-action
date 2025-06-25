@@ -4,6 +4,10 @@ inputs:
   artifact-name:
     description: "Original artifact name"
     required: true
+  base-ref:
+    description: "Base reference to compute merge-base against"
+    required: false
+    default: ${{ github.event.pull_request.base.ref }}
   token:
     description: "Token with actions:read; can be GITHUB_TOKEN"
     required: false
@@ -20,7 +24,7 @@ runs:
       id: merge_base
       shell: bash
       run: |
-        base_ref="${{ github.event.pull_request.base.ref }}"
+        base_ref="${{ inputs.base-ref }}"
         git fetch origin "$base_ref" --depth=1 --no-tags
         sha=$(git merge-base "$GITHUB_SHA" "origin/$base_ref")
         echo "sha=$sha" >> "$GITHUB_OUTPUT"
