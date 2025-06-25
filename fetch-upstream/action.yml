@@ -45,7 +45,6 @@ runs:
         commit: ${{ steps.merge_base.outputs.sha }}
         repo: ${{ steps.upstream_repo.outputs.owner }}/${{ steps.upstream_repo.outputs.repo }}
         github_token: ${{ inputs.token }}
-        workflow: ${{ github.workflow }}
 
     - name: Upload upstream artifact
       uses: actions/upload-artifact@v4
