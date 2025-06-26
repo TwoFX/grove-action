@@ -66,11 +66,31 @@ runs:
       with:
         path: user-repo
 
+    - name: Extract Grove revision from lake-manifest.json
+      id: grove-rev
+      shell: bash
+      run: |
+        MANIFEST_FILE="user-repo/${{ inputs.project-path }}/lake-manifest.json"
+        if [ -f "$MANIFEST_FILE" ]; then
+          echo "Lake manifest found at $MANIFEST_FILE"
+          GROVE_REV=$(jq -r '.packages[] | select(.name == "grove") | .rev' "$MANIFEST_FILE" 2>/dev/null || echo "")
+          if [ -n "$GROVE_REV" ] && [ "$GROVE_REV" != "null" ]; then
+            echo "Found grove rev: $GROVE_REV"
+            echo "grove-ref=$GROVE_REV" >> $GITHUB_OUTPUT
+          else
+            echo "Grove package not found in manifest, using default branch"
+            echo "grove-ref=${{ inputs.grove-branch }}" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "Lake manifest not found, using default branch"
+          echo "grove-ref=${{ inputs.grove-branch }}" >> $GITHUB_OUTPUT
+        fi
+
     - name: Checkout Grove
       uses: actions/checkout@v4
       with:
         repository: ${{ inputs.grove-repo }}
-        ref: ${{ inputs.grove-branch }}
+        ref: ${{ steps.grove-rev.outputs.grove-ref }}
         path: grove-repo
 
     - name: Run analysis
