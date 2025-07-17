@@ -104,6 +104,15 @@ runs:
       run: |
         lake exe ${{ inputs.script-name }} --full analysis.json --invalidated invalidated.json
 
+    - name: Copy analysis files to frontend public directory
+      shell: bash
+      run: |
+        mkdir -p grove-repo/frontend/public
+        cp user-repo/${{ inputs.project-path }}/analysis.json grove-repo/frontend/public/
+        if [ "${{ steps.download-upstream.outcome }}" == "success" ]; then
+          cp ${{ github.workspace }}/upstream-invalidated/invalidated.json grove-repo/frontend/public/
+        fi
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -126,7 +135,7 @@ runs:
       shell: bash
       working-directory: grove-repo/frontend
       env:
-        GROVE_DATA_LOCATION: ${{ github.workspace }}/user-repo/${{ inputs.project-path }}/analysis.json
+        GROVE_DATA_LOCATION: ${{ github.workspace }}/grove-repo/frontend/public/analysis.json
         GROVE_UPSTREAM_INVALIDATED_FACTS_LOCATION: ${{ steps.download-upstream.outcome == 'success' && format('{0}/upstream-invalidated/invalidated.json', github.workspace) || '' }}
       run: npm run build
 
