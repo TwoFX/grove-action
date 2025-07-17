@@ -108,7 +108,7 @@ runs:
       shell: bash
       run: |
         mkdir -p grove-repo/frontend/public
-        cp user-repo/${{ inputs.project-path }}/analysis.json grove-repo/frontend/public/
+        cp user-repo/${{ inputs.project-path }}/analysis.json grove-repo/frontend/public/metadata.json
         if [ "${{ steps.download-upstream.outcome }}" == "success" ]; then
           cp ${{ github.workspace }}/upstream-invalidated/invalidated.json grove-repo/frontend/public/
         fi
@@ -135,7 +135,7 @@ runs:
       shell: bash
       working-directory: grove-repo/frontend
       env:
-        GROVE_DATA_LOCATION: ${{ github.workspace }}/grove-repo/frontend/public/analysis.json
+        GROVE_DATA_LOCATION: ${{ github.workspace }}/grove-repo/frontend/public/metadata.json
         GROVE_UPSTREAM_INVALIDATED_FACTS_LOCATION: ${{ steps.download-upstream.outcome == 'success' && format('{0}/upstream-invalidated/invalidated.json', github.workspace) || '' }}
       run: npm run build
 
