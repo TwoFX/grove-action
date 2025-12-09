@@ -131,6 +131,13 @@ runs:
         name: upstream-${{ inputs.invalidated-facts-artifact-name }}
         path: ${{ github.workspace }}/upstream-invalidated
 
+    - name: List downloaded files
+      if: ${{ steps.download-upstream.outcome == 'success' }}
+      shell: bash
+      run: |
+        echo "Downloaded files with full paths:"
+        find ${{ github.workspace }}/upstream-invalidated -type f -exec echo {} \;
+
     - name: Build Grove frontend
       shell: bash
       working-directory: grove-repo/frontend
